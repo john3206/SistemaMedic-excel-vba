@@ -1,0 +1,61 @@
+Private Sub btnRemoveMedVec_Click()
+    Dim ws As Worksheet
+    Dim tbl As ListObject
+    Dim i As Long
+    Dim nomeSelecionado As String
+
+    If ListBoxVenc.ListIndex = -1 Then
+        MsgBox "Selecione um medicamento para remover.", vbExclamation
+        Exit Sub
+    End If
+
+    nomeSelecionado = ListBoxVenc.List(ListBoxVenc.ListIndex, 0) ' Nome do medicamento
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+    Set tbl = ws.ListObjects("Tabela2")
+
+    For i = tbl.ListRows.Count To 1 Step -1
+        If tbl.DataBodyRange(i, 1).Value = nomeSelecionado Then ' Verifica coluna A (Nome)
+            tbl.ListRows(i).Delete
+            MsgBox "Medicamento removido com sucesso!", vbInformation
+            Exit For
+        End If
+    Next i
+
+    AtualizarListBoxVenc
+End Sub
+
+Private Sub AjustarLarguraColunas()
+    Dim larguraTotal As Double
+    Dim larguraNome As Double, larguraValidade As Double, larguraEstoque As Double, larguraTipo As Double
+
+    larguraTotal = ListBoxVenc.Width
+
+    ' Proporções ajustadas: Nome 50%, Validade 20%, Estoque 15%, Tipo 15%
+    larguraNome = larguraTotal * 0.5
+    larguraValidade = larguraTotal * 0.2
+    larguraEstoque = larguraTotal * 0.1
+    larguraTipo = larguraTotal * 0.1
+
+    ListBoxVenc.ColumnCount = 4
+    ListBoxVenc.ColumnWidths = larguraNome & " pt;" & larguraValidade & " pt;" & larguraEstoque & " pt;" & larguraTipo & " pt"
+End Sub
+
+Private Sub UserForm_Activate()
+    AtualizarListBoxVenc
+    AjustarLarguraColunas
+End Sub
+
+Private Sub UserForm_Initialize()
+    AtualizarListBoxVenc
+    AjustarLarguraColunas
+End Sub
+
+Private Sub UserForm_Resize()
+    AjustarLarguraColunas
+End Sub
+
+Private Sub ListBoxVenc_Click()
+    ' (Opcional) ações ao clicar em um item
+End Sub
+
