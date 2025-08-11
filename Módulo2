@@ -1,0 +1,25 @@
+Public Sub AtualizarTotal()
+    Dim ws As Worksheet
+    Dim tbl As ListObject
+    Dim cel As Range
+    Dim total As Double
+    Dim i As Long
+
+    Set ws = ThisWorkbook.Sheets("Registros")
+    Set tbl = ws.ListObjects(1) ' primeira tabela da planilha
+
+    total = 0
+
+    For i = 1 To tbl.ListRows.Count
+        With tbl.ListRows(i).Range
+            If .Cells(1, 6).Value = "Retirou" Then
+                total = total + .Cells(1, 5).Value
+            ElseIf .Cells(1, 6).Value = "Devolveu" Then
+                total = total - .Cells(1, 5).Value
+            End If
+        End With
+    Next i
+
+    ws.Range("G1").Value = total
+End Sub
+
