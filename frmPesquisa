@@ -1,0 +1,207 @@
+Private Sub btnCadastrar_Click()
+    frmCadastroProdutos.Show ' Abre o formulário de cadastro de produtos
+End Sub
+
+Private Sub btnFechar_Click()
+    Unload Me ' Fecha o formulário atual
+End Sub
+
+Private Sub btnPvencidos_Click()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim linha As Integer
+    Dim dataValidade As Date
+    Dim diferencaMeses As Integer
+    Dim somaPeso As Double
+    Dim totalProdutos As Integer
+
+    Set wb = Workbooks("SISTEMA.xlsm")
+    Set ws = wb.Sheets("Produtos")
+
+    somaPeso = 0
+    totalProdutos = 0
+
+    Set rng = ws.Range("A2:F" & ws.Cells(ws.Rows.Count, "A").End(xlUp).Row)
+
+    Me.lstResultados.Clear
+
+    For Each cell In rng.Columns(1).Cells
+        If Not IsEmpty(cell.Offset(0, 5).Value) Then
+            If IsDate(cell.Offset(0, 5).Value) Then
+                dataValidade = CDate(cell.Offset(0, 5).Value)
+                diferencaMeses = DateDiff("m", dataValidade, Date)
+
+                If diferencaMeses >= 3 Then
+                    linha = Me.lstResultados.ListCount
+                    Me.lstResultados.AddItem
+                    Me.lstResultados.List(linha, 0) = cell.Value
+                    Me.lstResultados.List(linha, 1) = cell.Offset(0, 1).Value
+                    Me.lstResultados.List(linha, 2) = cell.Offset(0, 2).Value
+                    Me.lstResultados.List(linha, 3) = cell.Offset(0, 3).Value
+                    Me.lstResultados.List(linha, 4) = cell.Offset(0, 4).Value
+                    Me.lstResultados.List(linha, 5) = "[VENCIDO] " & Format(dataValidade, "dd/mm/yyyy")
+
+                    If IsNumeric(cell.Offset(0, 4).Value) Then
+                        somaPeso = somaPeso + cell.Offset(0, 4).Value
+                    End If
+                    totalProdutos = totalProdutos + 1
+                End If
+            End If
+        End If
+    Next cell
+
+    Me.Textpeso.Value = Format(somaPeso, "0.0") & " kg"
+    Me.TextTotalProdutos.Value = totalProdutos
+End Sub
+
+
+Private Sub btnExcluir_Click()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim codigoProduto As String
+    Dim encontrado As Boolean
+
+    Set wb = Workbooks("SISTEMA.xlsm")
+    Set ws = wb.Sheets("Produtos")
+
+    If Me.lstResultados.ListIndex = -1 Then
+        MsgBox "Selecione um produto para excluir.", vbExclamation, "Aviso"
+        Exit Sub
+    End If
+
+    codigoProduto = Me.lstResultados.List(Me.lstResultados.ListIndex, 1)
+    codigoProduto = Replace(codigoProduto, "[VENCIDO] ", "")
+
+    Set rng = ws.Range("B2:B" & ws.Cells(ws.Rows.Count, "B").End(xlUp).Row)
+
+    encontrado = False
+    For Each cell In rng
+        If cell.Value = codigoProduto Then
+            cell.EntireRow.Delete
+            encontrado = True
+            Exit For
+        End If
+    Next cell
+
+    If encontrado Then
+        MsgBox "Produto excluído com sucesso!", vbInformation, "Sucesso"
+        Me.lstResultados.RemoveItem Me.lstResultados.ListIndex
+        Me.txtBusca.Value = ""
+        Me.Textpeso.Value = ""
+        Me.TextTotalProdutos.Value = ""
+    Else
+        MsgBox "Produto não encontrado na planilha.", vbCritical, "Erro"
+    End If
+End Sub
+
+
+Private Sub AtualizarLista()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    Dim cell As Range
+
+    Set wb = Workbooks("SISTEMA.xlsm")
+    Set ws = wb.Sheets("Produtos")
+
+    lstResultados.Clear
+
+    ultimaLinha = ws.Cells(ws.Rows.Count, 2).End(xlUp).Row
+
+    For Each cell In ws.Range("B2:B" & ultimaLinha)
+        lstResultados.AddItem cell.Offset(0, -1).Value & " | " & _
+                              cell.Value & " | " & _
+                              cell.Offset(0, 1).Value & " | " & _
+                              cell.Offset(0, 2).Value & " | " & _
+                              cell.Offset(0, 3).Value & " | " & _
+                              Format(cell.Offset(0, 4).Value, "dd/mm/yyyy")
+    Next cell
+End Sub
+
+
+Private Sub txtBusca_Change()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim termoBusca As String
+    Dim linha As Integer
+    Dim coluna As Integer
+    Dim encontrado As Boolean
+    Dim valoresLinha As String
+    Dim somaPeso As Double
+    Dim totalProdutos As Integer
+    Dim dataValidade As Date
+    Dim diferencaMeses As Integer
+    Dim codigoProduto As String
+
+    Set wb = Workbooks("SISTEMA.xlsm")
+    Set ws = wb.Sheets("Produtos")
+
+    Set rng = ws.Range("A2:F" & ws.Cells(ws.Rows.Count, "A").End(xlUp).Row)
+
+    Me.lstResultados.Clear
+    somaPeso = 0
+    totalProdutos = 0
+
+    termoBusca = Trim(Me.txtBusca.Value)
+
+    If termoBusca = "" Then
+        Me.Textpeso.Value = ""
+        Me.TextTotalProdutos.Value = ""
+        Exit Sub
+    End If
+
+    For Each cell In rng.Columns(1).Cells
+        encontrado = False
+        valoresLinha = ""
+
+        For coluna = 1 To 6
+            valoresLinha = valoresLinha & " " & Trim(cell.Offset(0, coluna - 1).Value)
+        Next coluna
+
+        If InStr(1, valoresLinha, termoBusca, vbTextCompare) > 0 Then
+            encontrado = True
+        End If
+
+        If encontrado Then
+            linha = Me.lstResultados.ListCount
+            Me.lstResultados.AddItem
+
+            codigoProduto = cell.Offset(0, 1).Value
+            dataValidade = cell.Offset(0, 5).Value
+
+            If IsDate(dataValidade) Then
+                diferencaMeses = DateDiff("m", dataValidade, Date)
+                If diferencaMeses >= 3 Then
+                    Me.lstResultados.List(linha, 1) = cell.Offset(0, 1).Value
+                    Me.lstResultados.List(linha, 5) = "[VENCIDO] " & Format(dataValidade, "dd/mm/yyyy")
+                Else
+                    Me.lstResultados.List(linha, 1) = cell.Offset(0, 1).Value
+                    Me.lstResultados.List(linha, 5) = Format(dataValidade, "dd/mm/yyyy")
+                End If
+            Else
+                Me.lstResultados.List(linha, 5) = "Data Inválida"
+            End If
+
+            Me.lstResultados.List(linha, 0) = cell.Value
+            Me.lstResultados.List(linha, 2) = cell.Offset(0, 2).Value
+            Me.lstResultados.List(linha, 3) = cell.Offset(0, 3).Value
+            Me.lstResultados.List(linha, 4) = cell.Offset(0, 4).Value
+
+            If IsNumeric(cell.Offset(0, 4).Value) Then
+                somaPeso = somaPeso + cell.Offset(0, 4).Value
+            End If
+            totalProdutos = totalProdutos + 1
+        End If
+    Next cell
+
+    Me.Textpeso.Value = Format(somaPeso, "0.0") & " kg"
+    Me.TextTotalProdutos.Value = totalProdutos
+End Sub
+
+
