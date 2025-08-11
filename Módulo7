@@ -1,0 +1,103 @@
+Sub CalcularPerdasPorVencimento()
+
+    Dim wsQtd As Worksheet, wsPerda As Worksheet
+    Dim ultimaLinhaQtd As Long, linhaDestino As Long
+    Dim i As Long
+    Dim nome As String, tipo As String
+    Dim qtdEstoque As Double, valorUnitario As Double, valorPerda As Double
+    Dim validadeStr As String, validade As Date
+    Dim dict As Object
+    Dim mesAno As String
+    Dim resumoLinha As Long
+
+    Set wsQtd = Sheets("Qtd")
+    Set wsPerda = Sheets("perdaMedicamentos")
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    ' Limpa dados antigos (mantém cabeçalho)
+    wsPerda.Range("A2:I1000").ClearContents
+    linhaDestino = 2
+
+    ultimaLinhaQtd = wsQtd.Cells(wsQtd.Rows.Count, "A").End(xlUp).Row
+    
+    For i = 2 To ultimaLinhaQtd
+        validadeStr = Trim(wsQtd.Cells(i, "K").Text)
+        
+        If IsDate(validadeStr) Then
+            validade = CDate(validadeStr)
+            
+            If validade < Date Then
+                nome = wsQtd.Cells(i, "A").Value
+                tipo = wsQtd.Cells(i, "D").Value
+                qtdEstoque = Val(wsQtd.Cells(i, "J").Value)
+                valorUnitario = Val(wsQtd.Cells(i, "E").Value)
+                valorPerda = qtdEstoque * valorUnitario
+                mesAno = Format(validade, "mmmm/yyyy")
+                
+                ' Preenche dados na aba perdaMedicamentos
+                wsPerda.Cells(linhaDestino, "A").Value = nome
+                wsPerda.Cells(linhaDestino, "B").Value = tipo
+                wsPerda.Cells(linhaDestino, "C").Value = Format(validade, "dd/mm/yyyy")
+                wsPerda.Cells(linhaDestino, "D").Value = FormatCurrency(valorUnitario)
+                wsPerda.Cells(linhaDestino, "E").Value = qtdEstoque
+                wsPerda.Cells(linhaDestino, "F").Value = FormatCurrency(valorPerda)
+                
+                ' Acumula por mês/ano corretamente
+                mesAno = WorksheetFunction.Proper(mesAno)
+                If dict.exists(mesAno) Then
+                    dict(mesAno) = dict(mesAno) + valorPerda
+                Else
+                    dict.Add mesAno, valorPerda
+                End If
+                
+                linhaDestino = linhaDestino + 1
+            End If
+        End If
+    Next i
+
+    ' Escreve o resumo por mês nas colunas H e I
+    wsPerda.Cells(1, "H").Value = "Mês"
+    wsPerda.Cells(1, "I").Value = "Total"
+    resumoLinha = 2
+
+    ' Só processa o resumo se houver dados no dicionário
+    If dict.Count > 0 Then
+        Dim chaves() As Variant, datasTemp() As Date, j As Long
+        chaves = dict.Keys
+        ReDim datasTemp(0 To UBound(chaves))
+        
+        ' Converter "Maio/2024" em datas reais
+        For j = 0 To UBound(chaves)
+            datasTemp(j) = DateValue("01/" & chaves(j))
+        Next j
+        
+        ' Ordenar datasTemp e associar com chaves
+        Dim k As Long, tmpDate As Date, tmpStr As String
+        For j = 0 To UBound(datasTemp) - 1
+            For k = j + 1 To UBound(datasTemp)
+                If datasTemp(j) > datasTemp(k) Then
+                    tmpDate = datasTemp(j)
+                    datasTemp(j) = datasTemp(k)
+                    datasTemp(k) = tmpDate
+                    
+                    tmpStr = chaves(j)
+                    chaves(j) = chaves(k)
+                    chaves(k) = tmpStr
+                End If
+            Next k
+        Next j
+        
+        ' Inserir valores ordenados
+        For j = 0 To UBound(chaves)
+            wsPerda.Cells(resumoLinha, "H").Value = chaves(j)
+            wsPerda.Cells(resumoLinha, "I").Value = FormatCurrency(dict(chaves(j)))
+            resumoLinha = resumoLinha + 1
+        Next j
+    Else
+        MsgBox "Nenhum medicamento vencido encontrado. Nenhum resumo gerado.", vbInformation
+    End If
+
+    MsgBox "Medicamentos vencidos e resumo mensal de perdas atualizados com sucesso!", vbInformation
+
+End Sub
+
