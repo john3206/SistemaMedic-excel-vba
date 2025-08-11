@@ -1,0 +1,30 @@
+Sub AtualizarListBox1()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    Dim i As Long
+
+    ' Aba única de registros
+    Set ws = ThisWorkbook.Sheets("Registros")
+
+    ultimaLinha = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    With formMenu.ListBox1
+        .Clear
+        .ColumnCount = 6
+        .ColumnWidths = "40pt;100pt;65pt;100pt;80pt;70pt"
+
+        For i = 2 To ultimaLinha
+            .AddItem ws.Cells(i, 1).Value                       ' Quantidade
+            .List(.ListCount - 1, 1) = ws.Cells(i, 2).Value     ' Medicamento
+            .List(.ListCount - 1, 2) = ws.Cells(i, 3).Value     ' Data
+            .List(.ListCount - 1, 3) = ws.Cells(i, 4).Value     ' Colaborador
+            .List(.ListCount - 1, 4) = "R$ " & Format(ws.Cells(i, 5).Value, "#,##0.00") ' Valor Total formatado
+            .List(.ListCount - 1, 5) = ws.Cells(i, 6).Value     ' Movimentação
+        Next i
+
+        ' Rolar para o último item automaticamente
+        DoEvents
+        If .ListCount > 0 Then .TopIndex = .ListCount - 1
+    End With
+End Sub
+
