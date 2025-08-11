@@ -1,0 +1,301 @@
+' === BOTÃO ADICIONAR REGISTRO ===
+Private Sub btnAdicionar_Click()
+    Dim wsRegistros As Worksheet
+    Dim wsEstoque As Worksheet
+    Dim lastRow As Long
+    Dim linhaEstoque As Long
+    Dim nomeMedicamento As String
+    Dim nomeColaborador As String
+    Dim quantidade As Long
+    Dim valorUnitario As Double
+    Dim valorTotal As Double
+    Dim movimentacao As String
+    Dim qtdEstoqueAtual As Long
+    Dim valorG1 As Double
+    
+    ' Definir as planilhas
+    Set wsEstoque = ThisWorkbook.Sheets("Qtd")
+    Set wsRegistros = ThisWorkbook.Sheets("Registros") ' <<< ABA ÚNICA para histórico
+    
+    ' Coletando dados do formulário
+    nomeMedicamento = Trim(Me.cmbMedicamento.Value)
+    nomeColaborador = Trim(Me.cmbColaborador.Value)
+
+    If IsNumeric(Me.cmbQuantidade.Value) Then
+        quantidade = CLng(Me.cmbQuantidade.Value)
+    Else
+        quantidade = 0
+    End If
+
+    If Me.txtValorUnitario.Value <> "" And IsNumeric(Replace(Me.txtValorUnitario.Value, "R$", "")) Then
+        valorUnitario = CDbl(Replace(Me.txtValorUnitario.Value, "R$", ""))
+    Else
+        valorUnitario = 0
+    End If
+
+    movimentacao = Me.cmbMovimentacao.Value
+    valorTotal = quantidade * valorUnitario
+    Me.txtValorTotal.Value = Format(valorTotal, "R$ #,##0.00")
+
+    ' Validação de campos
+    If nomeMedicamento = "" Or nomeColaborador = "" Or quantidade = 0 Or valorUnitario = 0 Or movimentacao = "" Then
+        MsgBox "Por favor, preencha todos os campos obrigatórios.", vbExclamation, "Campos incompletos"
+        Exit Sub
+    End If
+
+    ' Verificar se medicamento existe no estoque
+    Dim cel As Range, encontrado As Boolean
+    Dim ultimaLinha As Long
+    encontrado = False
+
+    ultimaLinha = wsEstoque.Cells(wsEstoque.Rows.Count, "A").End(xlUp).Row
+
+    For Each cel In wsEstoque.Range("A2:A" & ultimaLinha)
+        If UCase(Trim(cel.Value)) = UCase(Trim(nomeMedicamento)) Then
+            linhaEstoque = cel.Row
+            encontrado = True
+            Exit For
+        End If
+    Next cel
+
+    If Not encontrado Then
+        MsgBox "Medicamento não encontrado no estoque.", vbCritical, "Erro de estoque"
+        Exit Sub
+    End If
+
+    qtdEstoqueAtual = wsEstoque.Cells(linhaEstoque, "J").Value
+
+    If movimentacao = "Retirou" And quantidade > qtdEstoqueAtual Then
+        MsgBox "Não é possível retirar mais do que há no estoque.", vbExclamation, "Estoque insuficiente"
+        Exit Sub
+    End If
+
+    ' Inserir o registro na aba única
+    lastRow = wsRegistros.Cells(wsRegistros.Rows.Count, "A").End(xlUp).Row + 1
+    
+    wsRegistros.Cells(lastRow, 1).Value = quantidade
+    wsRegistros.Cells(lastRow, 2).Value = nomeMedicamento
+    wsRegistros.Cells(lastRow, 3).Value = Date
+    wsRegistros.Cells(lastRow, 3).NumberFormat = "dd/mm/yyyy"
+    wsRegistros.Cells(lastRow, 4).Value = nomeColaborador
+    wsRegistros.Cells(lastRow, 5).Value = valorTotal
+    wsRegistros.Cells(lastRow, 6).Value = movimentacao
+
+    ' Atualizar estoque
+    If movimentacao = "Retirou" Then
+        wsEstoque.Cells(linhaEstoque, "J").Value = qtdEstoqueAtual - quantidade
+    ElseIf movimentacao = "Devolveu" Then
+        wsEstoque.Cells(linhaEstoque, "J").Value = qtdEstoqueAtual + quantidade
+    End If
+
+    ' Se antes da devolução o estoque estava zerado, enviar mensagem
+    If movimentacao = "Devolveu" And qtdEstoqueAtual = 0 Then
+        Dim numeroDestinoDev As String
+        Dim mensagemDev As String
+        Dim urlDev As String
+
+        numeroDestinoDev = "5519997400694"
+        mensagemDev = "Micael! A colaboradora " & nomeColaborador & " devolveu " & quantidade & _
+                      " unidade(s) do medicamento '" & nomeMedicamento & "', que estava zerado no estoque."
+        urlDev = "https://wa.me/" & numeroDestinoDev & "?text=" & WorksheetFunction.EncodeURL(mensagemDev)
+
+        ThisWorkbook.FollowHyperlink urlDev
+    End If
+
+    ' Verificar se estoque ficou zerado após a movimentação
+    If wsEstoque.Cells(linhaEstoque, "J").Value = 0 Then
+        MsgBox "O estoque do medicamento '" & nomeMedicamento & "' chegou a zero.", vbInformation, "Estoque Zerado"
+        
+        Dim numeroDestino As String
+        Dim mensagem As String
+        Dim url As String
+
+        numeroDestino = "5519997400694"
+        mensagem = "Fala Micael! Tudo bem? O medicamento '" & nomeMedicamento & "' está em falta no estoque. A quantidade chegou a zero."
+        url = "https://wa.me/" & numeroDestino & "?text=" & WorksheetFunction.EncodeURL(mensagem)
+
+        ThisWorkbook.FollowHyperlink url
+    End If
+
+    ' Atualizar célula G1 como acumulador
+    If IsNumeric(wsRegistros.Range("G1").Value) Then
+        valorG1 = wsRegistros.Range("G1").Value
+    Else
+        valorG1 = 0
+    End If
+
+    If movimentacao = "Retirou" Then
+        wsRegistros.Range("G1").Value = valorG1 + valorTotal
+    ElseIf movimentacao = "Devolveu" Then
+        wsRegistros.Range("G1").Value = valorG1 - valorTotal
+    End If
+
+    MsgBox "Registro adicionado com sucesso!", vbInformation, "Confirmação"
+    
+    Call AtualizarListBox1
+
+    ' Limpar campos
+    LimparCampos
+    txtCodigoMedicamento.Value = ""
+End Sub
+
+' === FUNÇÃO PARA LIMPAR CAMPOS ===
+Private Sub LimparCampos()
+    cmbMedicamento.Value = ""
+    cmbColaborador.Value = ""
+    cmbQuantidade.Value = ""
+    cmbMovimentacao.Value = ""
+    txtValorUnitario.Value = ""
+    txtValorTotal.Value = ""
+    txtData.Value = Format(Date, "dd/mm/yyyy")
+    cmbMedicamento.SetFocus
+End Sub
+
+Private Sub btnCancelar_Click()
+    Dim resposta As VbMsgBoxResult
+    resposta = MsgBox("Deseja realmente cancelar e sair?", vbQuestion + vbYesNo, "Confirmação")
+
+    If resposta = vbYes Then
+        Unload Me
+    End If
+End Sub
+
+Private Sub btnVerif_Click()
+    Dim medicamentoCodigo As String
+    Dim i As Long
+    Dim encontrado As Boolean
+    Dim wsEstoque As Worksheet
+
+    medicamentoCodigo = Me.txtCodigoMedicamento.Value
+    encontrado = False
+
+    Set wsEstoque = ThisWorkbook.Sheets("Qtd")
+
+    For i = 2 To wsEstoque.Cells(wsEstoque.Rows.Count, "H").End(xlUp).Row
+        If wsEstoque.Cells(i, 8).Value = medicamentoCodigo Then
+            Me.cmbMedicamento.Value = wsEstoque.Cells(i, 1).Value
+            Me.txtValorUnitario.Value = Format(wsEstoque.Cells(i, 5).Value, "R$ #,##0.00")
+            encontrado = True
+            Exit For
+        End If
+    Next i
+
+    If Not encontrado Then
+        MsgBox "Medicamento não encontrado!", vbExclamation, "Erro"
+    End If
+End Sub
+
+' === QUANDO ALTERA A QUANTIDADE ===
+Private Sub cmbQuantidade_Change()
+    Call AtualizarValorTotal
+End Sub
+
+' === FORMULÁRIO INICIALIZAÇÃO ===
+Private Sub UserForm_Initialize()
+    Dim ws As Worksheet
+    Dim i As Long
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+
+    cmbMedicamento.Clear
+    cmbColaborador.Clear
+    cmbQuantidade.Clear
+    cmbMovimentacao.Clear
+
+    ' Medicamentos
+    i = 2
+    Do While ws.Cells(i, "A").Value <> ""
+        cmbMedicamento.AddItem ws.Cells(i, "A").Value
+        i = i + 1
+    Loop
+
+    ' Colaboradores sem repetição
+    i = 2
+    Do While ws.Cells(i, "F").Value <> ""
+        Dim existe As Boolean: existe = False
+        Dim j As Long
+        For j = 0 To cmbColaborador.ListCount - 1
+            If cmbColaborador.List(j) = ws.Cells(i, "F").Value Then
+                existe = True
+                Exit For
+            End If
+        Next j
+        If Not existe Then cmbColaborador.AddItem ws.Cells(i, "F").Value
+        i = i + 1
+    Loop
+
+    ' Quantidades
+    i = 2
+    Do While ws.Cells(i, "G").Value <> ""
+        cmbQuantidade.AddItem ws.Cells(i, "G").Value
+        i = i + 1
+    Loop
+
+    ' Movimentação
+    cmbMovimentacao.AddItem "Retirou"
+    cmbMovimentacao.AddItem "Devolveu"
+
+    txtValorUnitario.Value = ""
+    txtValorTotal.Value = ""
+    txtValorUnitario.Locked = True
+    txtValorTotal.Locked = True
+    txtData.Value = Format(Date, "dd/mm/yyyy")
+    cmbMedicamento.SetFocus
+End Sub
+
+' === QUANDO ALTERA O MEDICAMENTO ===
+Private Sub cmbMedicamento_Change()
+    Dim ws As Worksheet
+    Dim i As Long
+    Dim Medicamento As String
+    Dim valorUnitario As Double
+    Dim encontrado As Boolean
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+    Medicamento = cmbMedicamento.Value
+    encontrado = False
+
+    For i = 2 To ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+        If ws.Cells(i, "A").Value = Medicamento Then
+            valorUnitario = ws.Cells(i, "E").Value
+            encontrado = True
+            Exit For
+        End If
+    Next i
+
+    If encontrado Then
+        txtValorUnitario.Value = Format(valorUnitario, "R$ #,##0.00")
+    Else
+        txtValorUnitario.Value = ""
+    End If
+
+    Call AtualizarValorTotal
+End Sub
+
+' === FUNÇÃO QUE CALCULA VALOR TOTAL ===
+Private Sub AtualizarValorTotal()
+    Dim qtd As Double
+    Dim valorUnit As Double
+    Dim valorTotal As Double
+    Dim valorTexto As String
+
+    If IsNumeric(cmbQuantidade.Value) Then
+        qtd = CDbl(cmbQuantidade.Value)
+    Else
+        txtValorTotal.Value = ""
+        Exit Sub
+    End If
+
+    valorTexto = Replace(txtValorUnitario.Value, "R$", "")
+    valorTexto = Trim(valorTexto)
+
+    If IsNumeric(valorTexto) Then
+        valorUnit = CDbl(valorTexto)
+        valorTotal = qtd * valorUnit
+        txtValorTotal.Value = Format(valorTotal, "R$ #,##0.00")
+    Else
+        txtValorTotal.Value = ""
+    End If
+End Sub
+
+
