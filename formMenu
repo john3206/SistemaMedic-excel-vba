@@ -1,1 +1,137 @@
+Dim atualizarTempo As Boolean
+
+Private Sub cmbBanco_Click()
+    If VerificaSenha("Digite a senha para acessar o banco de dados de medicamentos:") Then
+        Me.Hide
+        Sheets("Qtd").Visible = xlSheetVisible
+        Sheets("Qtd").Select
+    End If
+End Sub
+
+Private Sub cmbcadastrarMed_Click()
+    If VerificaSenha("Digite a senha para acessar o cadastro de medicamentos:") Then
+        frmCadastroMedicamento.Show
+    End If
+End Sub
+
+Private Sub cmbMinimizar_Click()
+    Me.Hide ' Oculta o formulário
+End Sub
+
+Private Sub cmbMsair_Click()
+     Unload Me ' Fecha o formulário atual
+End Sub
+
+Private Sub cmbPesquisarMed_Click()
+    formpesquisa.Show
+End Sub
+
+Private Sub cmbPvencimento_Click()
+    ProxVenc.Show
+End Sub
+
+
+Private Sub cmbRetirarMed_Click()
+    If VerificaSenha("Digite a senha para acessar a retirada de medicamentos:") Then
+        txtQuantidade.Show
+    End If
+End Sub
+
+Private Sub cmbvencidos_Click()
+    Vencidos.Show
+End Sub
+
+
+Private Sub Image6_BeforeDragOver(ByVal Cancel As MSForms.ReturnBoolean, ByVal Data As MSForms.DataObject, ByVal X As Single, ByVal Y As Single, ByVal DragState As MSForms.fmDragState, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub ListBox1_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+    Call CarregarHistorico
+    Call AtualizarListBox1
+    ListBox1.ColumnCount = 6
+    ListBox1.ColumnWidths = "40 pt;150 pt;80 pt;100 pt;80 pt;80 pt"
+    ' Teste de rolagem forçada
+    With ListBox1
+        If .ListCount > 0 Then .TopIndex = .ListCount - 1
+    End With
+End Sub
+
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then
+        MsgBox "Use o botão SAIR para fechar o sistema.", vbExclamation
+        Cancel = True
+    End If
+End Sub
+
+Private Sub UserForm_Terminate()
+    atualizarTempo = False
+
+End Sub
+
+Sub CarregarHistorico()
+    Dim wsRegistros As Worksheet
+    Dim ultimaLinha As Long
+    Dim arrDados As Variant
+    Dim listaTemp As Variant
+    Dim i As Long, j As Long
+    Dim linhaValida As Long
+    
+    Set wsRegistros = ThisWorkbook.Sheets("Registros")
+    
+    ' Última linha preenchida na Coluna A
+    ultimaLinha = wsRegistros.Cells(wsRegistros.Rows.Count, "A").End(xlUp).Row
+    
+    If ultimaLinha < 2 Then
+        formMenu.ListBox1.Clear
+        MsgBox "Nenhum dado registrado ainda.", vbInformation
+        Exit Sub
+    End If
+    
+    ' Pega tudo de A:F
+    arrDados = wsRegistros.Range("A2:F" & ultimaLinha).Value
+    
+    ' Redimensiona array temporário (mesmo nº de colunas, mas vamos filtrar linhas válidas)
+    ReDim listaTemp(1 To UBound(arrDados, 1), 1 To 6)
+    linhaValida = 0
+    
+    ' Varre as linhas
+    For i = 1 To UBound(arrDados, 1)
+        ' Ignora linhas em branco ou com "TOTAL" na primeira coluna
+        If Trim(arrDados(i, 1)) <> "" And UCase(Trim(arrDados(i, 1))) <> "TOTAL" Then
+            linhaValida = linhaValida + 1
+            For j = 1 To 6
+                listaTemp(linhaValida, j) = arrDados(i, j)
+            Next j
+            
+            ' Tratar o Valor Total (coluna 5)
+            If IsNumeric(Replace(listaTemp(linhaValida, 5), "R$", "")) Then
+                listaTemp(linhaValida, 5) = "R$ " & Format(Replace(listaTemp(linhaValida, 5), "R$", ""), "#,##0.00")
+            End If
+        End If
+    Next i
+    
+    ' Redimensiona para o número certo de linhas
+    If linhaValida = 0 Then
+        formMenu.ListBox1.Clear
+        MsgBox "Nenhum registro válido encontrado.", vbInformation
+        Exit Sub
+    End If
+    ReDim Preserve listaTemp(1 To linhaValida, 1 To 6)
+    
+    ' Joga no ListBox
+    With formMenu.ListBox1
+        .Clear
+        .ColumnCount = 6
+        .ColumnWidths = "40pt;150pt;80pt;100pt;80pt;80pt"
+        .List = listaTemp
+        If .ListCount > 0 Then .TopIndex = .ListCount - 1
+    End With
+End Sub
+
 
