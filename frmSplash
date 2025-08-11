@@ -1,0 +1,15 @@
+
+
+Private Sub UserForm_Activate()
+    ' Espera 3 segundos antes de abrir o menu principal
+    Application.Wait Now + TimeValue("0:00:03")
+    
+    ' Fecha a Splash
+    Unload Me
+    
+    ' Abre o menu principal
+    FormOpcao.Show
+End Sub
+
+Private Sub UserForm_Initialize()
+End Sub
