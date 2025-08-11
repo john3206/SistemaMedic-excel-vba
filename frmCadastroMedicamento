@@ -1,0 +1,193 @@
+Private Sub btnCadastrar_Click()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    Dim valorUnitario As Double
+    Dim precoOriginal As Double
+    Dim i As Long
+    Dim encontrou As Boolean
+    Dim quantidadeEstoque As Double
+    Dim novaQuantidade As Double
+    Dim validadeDigitada As Date
+    Dim codigoDigitado As String
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+
+    ' Verifica campos obrigatórios
+    If Me.txtCodigo.Text = "" Or _
+       Me.txtNome.Text = "" Or _
+       Me.txtQtd.Text = "" Or _
+       Me.txtValidade.Text = "" Or _
+       Me.txtPreco.Text = "" Or _
+       Me.txtTipo.Text = "" Or _
+       Me.txtFabricante.Text = "" Then
+        MsgBox "Preencha todos os campos antes de cadastrar.", vbExclamation
+        Exit Sub
+    End If
+
+    precoOriginal = CDbl(Me.txtPreco.Text)
+    validadeDigitada = CDate(Me.txtValidade.Text)
+    codigoDigitado = UCase(Me.txtCodigo.Text)
+
+    encontrou = False
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    For i = 2 To ultimaLinha
+        If UCase(ws.Cells(i, 8).Value) = codigoDigitado Then ' Código (coluna H)
+            If CDate(ws.Cells(i, 11).Value) = validadeDigitada Then ' Validade (coluna K)
+                ' Soma quantidade
+                quantidadeEstoque = Val(ws.Cells(i, 10).Value)
+                novaQuantidade = quantidadeEstoque + CDbl(Me.txtQtd.Text)
+                ws.Cells(i, 10).Value = novaQuantidade
+
+                ' Atualiza preço e valor unitário formatados
+                With ws.Cells(i, 2)
+                    .NumberFormat = "R$ #,##0.00"
+                    .Value = precoOriginal
+                End With
+
+                With ws.Cells(i, 5)
+                    .NumberFormat = "R$ #,##0.00"
+                    .Value = precoOriginal / novaQuantidade
+                End With
+
+                ' Atualiza validade
+                ws.Cells(i, 11).Value = validadeDigitada
+                ws.Cells(i, 11).NumberFormat = "dd/mm/yyyy"
+
+                ' Alinhamento
+                With ws.Range("A" & i & ":K" & i)
+                    .HorizontalAlignment = xlLeft
+                    .VerticalAlignment = xlCenter
+                End With
+
+                MsgBox "Estoque atualizado com sucesso!", vbInformation
+                encontrou = True
+                Exit For
+            End If
+        End If
+    Next i
+
+    ' Novo registro se não encontrou
+    If Not encontrou Then
+        ultimaLinha = ultimaLinha + 1
+
+        valorUnitario = precoOriginal / CDbl(Me.txtQtd.Text)
+
+        ws.Cells(ultimaLinha, 1).Value = UCase(Me.txtNome.Text)         ' Nome - Coluna A
+        ws.Cells(ultimaLinha, 2).Value = precoOriginal                  ' Preço - Coluna B
+        ws.Cells(ultimaLinha, 4).Value = UCase(Me.txtTipo.Text)         ' Tipo - Coluna D
+        ws.Cells(ultimaLinha, 5).Value = valorUnitario                  ' Valor Unitário - Coluna E
+        ws.Cells(ultimaLinha, 8).Value = codigoDigitado                 ' Código - Coluna H
+        ws.Cells(ultimaLinha, 9).Value = UCase(Me.txtFabricante.Text)   ' Fabricante - Coluna I
+        ws.Cells(ultimaLinha, 10).Value = CDbl(Me.txtQtd.Text)          ' Quantidade - Coluna J
+        ws.Cells(ultimaLinha, 11).Value = validadeDigitada              ' Validade - Coluna K
+
+        ' Formatação
+        ws.Cells(ultimaLinha, 2).NumberFormat = "R$ #,##0.00"
+        ws.Cells(ultimaLinha, 5).NumberFormat = "R$ #,##0.00"
+        ws.Cells(ultimaLinha, 11).NumberFormat = "dd/mm/yyyy"
+
+        With ws.Range("A" & ultimaLinha & ":K" & ultimaLinha)
+            .HorizontalAlignment = xlLeft
+            .VerticalAlignment = xlCenter
+        End With
+
+        MsgBox "Cadastro realizado com sucesso!", vbInformation
+    End If
+
+    ' Limpa os campos
+    Me.txtCodigo.Text = ""
+    Me.txtNome.Text = ""
+    Me.txtQtd.Text = ""
+    Me.txtValidade.Text = ""
+    Me.txtPreco.Text = ""
+    Me.txtTipo.Text = ""
+    Me.txtFabricante.Text = ""
+    Me.txtData.Text = Format(Date, "dd/mm/yyyy")
+End Sub
+
+Private Sub btnCancelar_Click()
+
+End Sub
+
+Private Sub btnSair_Click()
+    Unload Me
+End Sub
+
+
+Private Sub btnVerificar_Click()
+    Dim ws As Worksheet
+    Dim i As Long
+    Dim codigoDigitado As String
+    Dim ultimaLinha As Long
+    Dim encontrou As Boolean
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+
+    If Me.txtCodigo.Text = "" Then
+        MsgBox "Digite o Código para verificar.", vbExclamation
+        Exit Sub
+    End If
+
+    codigoDigitado = UCase(Me.txtCodigo.Text)
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    encontrou = False
+
+    For i = 2 To ultimaLinha
+        If UCase(ws.Cells(i, 8).Value) = codigoDigitado Then
+            MsgBox "Medicamento encontrado! Dados carregados.", vbInformation
+
+            ' Preenche os campos automaticamente
+            Me.txtNome.Text = ws.Cells(i, 1).Value       ' Nome (Coluna A)
+            Me.txtValidade.Text = ws.Cells(i, 11).Value  ' Validade (Coluna K)
+            Me.txtPreco.Text = Format(ws.Cells(i, 2).Value, "R$ #,##0.00")   ' Preço (Coluna B)
+            Me.txtTipo.Text = ws.Cells(i, 4).Value       ' Tipo (Coluna D)
+            Me.txtFabricante.Text = ws.Cells(i, 9).Value ' Fabricante (Coluna I)
+
+            ' Limpa o campo Quantidade para o usuário ajustar
+            Me.txtQtd.Text = ""
+
+            encontrou = True
+            Exit For
+        End If
+    Next i
+
+    If Not encontrou Then
+        MsgBox "Medicamento não encontrado. Por favor, cadastre o novo medicamento.", vbExclamation
+    End If
+End Sub
+
+Private Sub txtData_Change()
+
+End Sub
+
+Private Sub txtNome_Change()
+    Me.txtNome.Text = UCase(Me.txtNome.Text)
+    Me.txtNome.SelStart = Len(Me.txtNome.Text)
+End Sub
+
+Private Sub txtCodigo_Change()
+    Me.txtCodigo.Text = UCase(Me.txtCodigo.Text)
+    Me.txtCodigo.SelStart = Len(Me.txtCodigo.Text)
+End Sub
+
+Private Sub txtTipo_Change()
+    Me.txtTipo.Text = UCase(Me.txtTipo.Text)
+    Me.txtTipo.SelStart = Len(Me.txtTipo.Text)
+End Sub
+
+Private Sub txtFabricante_Change()
+    Me.txtFabricante.Text = UCase(Me.txtFabricante.Text)
+    Me.txtFabricante.SelStart = Len(Me.txtFabricante.Text)
+End Sub
+
+
+
+Private Sub UserForm_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+    Me.txtData.Text = Format(Date, "dd/mm/yyyy")
+End Sub
+
