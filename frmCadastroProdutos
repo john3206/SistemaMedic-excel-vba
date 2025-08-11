@@ -1,0 +1,136 @@
+
+
+Private Sub btnFechar_Click()
+    Unload Me ' Fecha o formulário atual
+End Sub
+
+
+Private Sub btnLimpar_Click()
+    ' Limpa todos os campos do formulário
+    txtQtd.Value = ""
+    txtcod.Value = ""
+    txtid.Value = ""
+    txtlot.Value = ""
+    txtpes.Value = ""
+    txtdat.Value = ""
+
+    ' Retorna o foco para o primeiro campo (opcional)
+    txtQtd.SetFocus
+End Sub
+
+
+Private Sub btnSalvar_Click()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    Dim dataFormatada As Date
+    
+    ' Definir a planilha onde os dados serão salvos
+    Set ws = ThisWorkbook.Sheets("Produtos") ' Certifique-se de que o nome está correto!
+
+    ' Verifica se todos os campos estão preenchidos
+    If txtQtd.Value = "" Or txtcod.Value = "" Or txtid.Value = "" Or _
+       txtlot.Value = "" Or txtpes.Value = "" Or txtdat.Value = "" Then
+        MsgBox "Por favor, preencha todos os campos antes de salvar.", vbExclamation, "Campos Vazios"
+        Exit Sub
+    End If
+
+    ' Converter a data corretamente
+    On Error Resume Next
+    dataFormatada = CDate(txtdat.Value)
+    If Err.Number <> 0 Then
+        MsgBox "Erro ao processar a data! Certifique-se de inserir no formato DD/MM/AAAA.", vbExclamation, "Erro"
+        Exit Sub
+    End If
+    On Error GoTo 0
+
+    ' Encontrar a próxima linha vazia na coluna A
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row + 1
+
+    ' Inserir os valores na planilha
+    ws.Cells(ultimaLinha, 1).Value = txtQtd.Value    ' Quantidade
+    ws.Cells(ultimaLinha, 2).Value = txtcod.Value    ' Código
+    ws.Cells(ultimaLinha, 3).Value = txtid.Value     ' Identificação
+    ws.Cells(ultimaLinha, 4).Value = txtlot.Value    ' Lote
+    ws.Cells(ultimaLinha, 5).Value = txtpes.Value    ' Peso
+    ws.Cells(ultimaLinha, 6).Value = dataFormatada   ' Salva a data corretamente
+    ws.Cells(ultimaLinha, 6).NumberFormat = "dd/mm/yyyy" ' Formata a célula como data DD/MM/YYYY
+
+    ' Limpar os campos após salvar
+    txtQtd.Value = ""
+    txtcod.Value = ""
+    txtid.Value = ""
+    txtlot.Value = ""
+    txtpes.Value = ""
+    txtdat.Value = ""
+
+    ' Mensagem de confirmação
+    MsgBox "Produto cadastrado com sucesso!", vbInformation, "Sucesso"
+End Sub
+
+Private Sub txtdat_BeforeUpdate(ByVal Cancel As MSForms.ReturnBoolean)
+    Dim dt As Date
+    On Error Resume Next
+    dt = CDate(txtdat.Value) ' Converte o valor para data
+    If Err.Number <> 0 Then
+        MsgBox "Data inválida! Insira no formato dd/mm/aaaa.", vbExclamation, "Erro"
+        Cancel = True
+        Err.Clear
+    Else
+        txtdat.Value = Format(dt, "dd/mm/yyyy") ' Formata corretamente
+    End If
+    On Error GoTo 0
+End Sub
+
+Private Sub CarregarDados()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    Dim linha As Long
+    Dim dataCorreta As String
+
+    ' Definir a planilha
+    Set ws = ThisWorkbook.Sheets("Produtos")
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    ' Limpa a ListBox antes de carregar novos dados
+    Me.ListBox1.Clear
+
+    ' Loop para carregar os dados
+    For linha = 2 To ultimaLinha
+        ' Formatar a data corretamente para exibição
+        dataCorreta = Format(ws.Cells(linha, 6).Value, "dd/mm/yyyy")
+
+        ' Adicionar os itens na ListBox
+        With Me.ListBox1
+            .AddItem ws.Cells(linha, 1).Value ' Quantidade
+            .List(.ListCount - 1, 1) = ws.Cells(linha, 2).Value ' Código
+            .List(.ListCount - 1, 2) = ws.Cells(linha, 3).Value ' Identificação
+            .List(.ListCount - 1, 3) = ws.Cells(linha, 4).Value ' Lote
+            .List(.ListCount - 1, 4) = ws.Cells(linha, 5).Value ' Peso
+            .List(.ListCount - 1, 5) = dataCorreta ' Data formatada corretamente
+        End With
+    Next linha
+End Sub
+
+Private Sub txtdat_Change()
+
+End Sub
+
+Private Sub txtIdentificacao_Click()
+
+End Sub
+
+Private Sub txtLote_Click()
+
+End Sub
+
+Private Sub txtPeso_Click()
+
+End Sub
+
+Private Sub txtQtd_Change()
+
+End Sub
+
+Private Sub txtQuantidade_Click()
+
+End Sub
