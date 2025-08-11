@@ -1,0 +1,124 @@
+Private Sub CommandButton1_Click()
+
+End Sub
+
+Private Sub CmdPesqExc_Click()
+    Dim ws As Worksheet
+    Dim codigoSelecionado As String
+    Dim ultimaLinha As Long
+    Dim i As Long
+    Dim resposta As VbMsgBoxResult
+    Dim encontrou As Boolean
+
+    ' Verifica se algo foi selecionado
+    If Me.ListBoxPesquisa.ListIndex = -1 Then
+        MsgBox "Selecione um item na lista para excluir.", vbExclamation, "Nenhuma seleção"
+        Exit Sub
+    End If
+
+    ' Captura o código do medicamento (coluna 0 no ListBox)
+    codigoSelecionado = Me.ListBoxPesquisa.List(Me.ListBoxPesquisa.ListIndex, 0)
+
+    ' Confirmação
+    resposta = MsgBox("Tem certeza que deseja excluir este medicamento do estoque?", vbYesNo + vbQuestion, "Confirmar Exclusão")
+    If resposta = vbNo Then Exit Sub
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    encontrou = False
+
+    ' Procura pela linha com o código selecionado
+    For i = 2 To ultimaLinha
+        If Trim(UCase(ws.Cells(i, 8).Value)) = Trim(UCase(codigoSelecionado)) Then
+            ws.Rows(i).Delete
+            encontrou = True
+            Exit For
+        End If
+    Next i
+
+    If encontrou Then
+        MsgBox "Medicamento excluído com sucesso.", vbInformation, "Exclusão concluída"
+    Else
+        MsgBox "Não foi possível localizar o medicamento na planilha.", vbExclamation, "Erro"
+    End If
+
+    ' Atualiza a lista de pesquisa
+    TextPNome_Change
+End Sub
+
+
+Private Sub Label3_Click()
+
+End Sub
+
+Private Sub Label2_Click()
+
+End Sub
+
+Private Sub Label8_Click()
+
+End Sub
+
+Private Sub ListBoxPesquisa_Click()
+
+End Sub
+
+Private Sub TextPNome_Change()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    Dim i As Long
+    Dim textoPesquisado As String
+    Dim encontrado As Boolean
+
+    ' Atribui a planilha onde os dados estão armazenados
+    Set ws = ThisWorkbook.Sheets("Qtd")
+
+    ' Limpa o ListBox antes de adicionar novos itens
+    Me.ListBoxPesquisa.Clear
+
+    ' Pega o valor digitado no campo de pesquisa (TextPNome)
+    textoPesquisado = UCase(Me.TextPNome.Text) ' Converter para maiúsculas para comparação
+
+    ' Verifica se foi digitado algo para pesquisar
+    If textoPesquisado = "" Then
+        Exit Sub ' Se não houver texto no campo, não faz a pesquisa
+    End If
+
+    ultimaLinha = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row ' Encontra a última linha da planilha
+
+    ' Loop para percorrer as linhas da planilha
+    For i = 2 To ultimaLinha
+        ' Verifica se o texto pesquisado aparece em qualquer uma das colunas relevantes
+        If InStr(UCase(ws.Cells(i, 8).Value), textoPesquisado) > 0 Or _
+           InStr(UCase(ws.Cells(i, 1).Value), textoPesquisado) > 0 Or _
+           InStr(UCase(ws.Cells(i, 4).Value), textoPesquisado) > 0 Or _
+           InStr(UCase(ws.Cells(i, 9).Value), textoPesquisado) > 0 Or _
+           InStr(UCase(ws.Cells(i, 10).Value), textoPesquisado) > 0 Or _
+           InStr(UCase(ws.Cells(i, 11).Value), textoPesquisado) > 0 Then
+
+            ' Se encontrado, adiciona as informações no ListBox (colunas H, A, D, I, J, K)
+            Me.ListBoxPesquisa.AddItem ws.Cells(i, 8).Value ' Código (coluna H)
+            Me.ListBoxPesquisa.List(Me.ListBoxPesquisa.ListCount - 1, 1) = ws.Cells(i, 1).Value ' Nome (coluna A)
+            Me.ListBoxPesquisa.List(Me.ListBoxPesquisa.ListCount - 1, 2) = ws.Cells(i, 4).Value ' Tipo (coluna D)
+            Me.ListBoxPesquisa.List(Me.ListBoxPesquisa.ListCount - 1, 3) = ws.Cells(i, 9).Value ' Fabricante (coluna I)
+            Me.ListBoxPesquisa.List(Me.ListBoxPesquisa.ListCount - 1, 4) = ws.Cells(i, 10).Value ' Quantidade (coluna J)
+            Me.ListBoxPesquisa.List(Me.ListBoxPesquisa.ListCount - 1, 5) = ws.Cells(i, 11).Value ' Validade (coluna K)
+            encontrado = True
+        End If
+    Next i
+
+    ' Se não encontrou nenhum medicamento correspondente
+    If Not encontrado Then
+        MsgBox "Nenhum medicamento encontrado para a pesquisa informada.", vbInformation
+    End If
+End Sub
+
+
+Private Sub UserForm_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+    
+End Sub
+
