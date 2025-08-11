@@ -1,0 +1,69 @@
+
+Private Sub CmdOpcExt_Click()
+
+End Sub
+
+Private Sub CmdOpcMed_Click()
+
+End Sub
+
+
+Private Sub CommandButton2_Click()
+
+End Sub
+
+Private Sub Label1_Click()
+
+End Sub
+
+Private Sub cmdAdmin_Click()
+    If VerificaSenha("Digite a senha para acessar o banco de dados de medicamentos:") Then
+        ' Mostrar Excel completo
+        FormOpcao.Hide
+        Application.Visible = True
+    End If
+End Sub
+Private Sub CommandButton10_Click()
+    ' Salva o arquivo antes de sair
+    ThisWorkbook.Save
+    ThisWorkbook.Saved = True
+    Application.Quit
+End Sub
+
+Private Sub CommandButton11_Click()
+
+End Sub
+
+Private Sub CommandButton7_Click()
+If VerificaSenha("Digite a senha para acessar o cadastro de medicamentos:") Then
+        formMenu.Show
+    End If
+End Sub
+
+Private Sub CommandButton8_Click()
+If VerificaSenha("Digite a senha para acessar o cadastro de Produtos:") Then
+        Extintores.Show
+        End If
+End Sub
+
+Private Sub CommandButton9_Click()
+    If VerificaSenha("Digite a senha para acessar o cadastro de Produtos:") Then
+        frmPesquisa.Show
+    End If
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+   
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then
+        MsgBox "Use o botão SAIR para fechar o sistema.", vbExclamation
+        Cancel = True
+    End If
+End Sub
+
