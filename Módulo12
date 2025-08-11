@@ -1,0 +1,62 @@
+Sub CriarFormularioPesquisa()
+    Dim frm As Object
+    Dim txtBusca As Object
+    Dim lstResultados As Object
+    Dim btnFechar As Object
+    
+    ' Criando o formulário
+    Set frm = ThisWorkbook.VBProject.VBComponents.Add(3)
+    frm.Properties("Caption") = "Pesquisa de Produtos"
+    frm.Properties("Width") = 400
+    frm.Properties("Height") = 300
+    
+    ' Criando a caixa de texto para busca
+    Set txtBusca = frm.Designer.Controls.Add("Forms.TextBox.1", "txtBusca", True)
+    txtBusca.Left = 20
+    txtBusca.Top = 20
+    txtBusca.Width = 250
+    
+    ' Criando a lista de resultados
+    Set lstResultados = frm.Designer.Controls.Add("Forms.ListBox.1", "lstResultados", True)
+    lstResultados.Left = 20
+    lstResultados.Top = 50
+    lstResultados.Width = 350
+    lstResultados.Height = 200
+    
+    ' Criando o botão de fechar
+    Set btnFechar = frm.Designer.Controls.Add("Forms.CommandButton.1", "btnFechar", True)
+    btnFechar.Caption = "Fechar"
+    btnFechar.Left = 280
+    btnFechar.Top = 20
+    btnFechar.Width = 80
+    
+    ' Código para fechar o formulário
+    With frm.CodeModule
+        .InsertLines .CountOfLines + 1, _
+        "Private Sub btnFechar_Click()" & vbCrLf & _
+        "    Unload Me" & vbCrLf & _
+        "End Sub"
+    End With
+    
+    ' Código para pesquisar na tabela
+    With frm.CodeModule
+        .InsertLines .CountOfLines + 1, _
+        "Private Sub txtBusca_Change()" & vbCrLf & _
+        "    Dim ws As Worksheet" & vbCrLf & _
+        "    Dim rng As Range, cell As Range" & vbCrLf & _
+        "    Set ws = ThisWorkbook.Sheets(1) ' Ajuste conforme necessário" & vbCrLf & _
+        "    Set rng = ws.Range(""B2:B100"") ' Ajuste conforme necessário" & vbCrLf & _
+        "    lstResultados.Clear" & vbCrLf & _
+        "    For Each cell In rng" & vbCrLf & _
+        "        If InStr(1, cell.Value, txtBusca.Value, vbTextCompare) > 0 Then" & vbCrLf & _
+        "            lstResultados.AddItem cell.Offset(0, -1).Value & "" - "" & cell.Value & "" - "" & cell.Offset(0, 1).Value" & vbCrLf & _
+        "        End If" & vbCrLf & _
+        "    Next cell" & vbCrLf & _
+        "End Sub"
+    End With
+    
+    ' Exibir o formulário
+    VBA.UserForms.Add(frm.Name).Show
+End Sub
+
+
