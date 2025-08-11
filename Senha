@@ -1,0 +1,22 @@
+Function VerificaSenha(Optional mensagem As String = "Digite a senha para continuar:") As Boolean
+    Dim senha As String
+    Dim resposta As Integer
+
+    ' Exibe o InputBox e verifica se o usuário clicou em "Cancelar"
+    senha = InputBox(mensagem, "Acesso Restrito")
+    If senha = "" Then
+        MsgBox "Você cancelou a operação.", vbInformation, "Operação Cancelada"
+        VerificaSenha = False
+        Exit Function
+    End If
+    
+    ' Verifica a senha fornecida
+    If senha = "1234" Then ' <-- Troque "1234" pela senha desejada
+        VerificaSenha = True
+    Else
+        MsgBox "Senha incorreta. Acesso negado.", vbCritical, "Erro de Acesso"
+        VerificaSenha = False
+    End If
+End Function
+
+
