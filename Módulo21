@@ -1,0 +1,4 @@
+Sub AbrirPesquisa()
+    frmPesquisa.Show
+End Sub
+
