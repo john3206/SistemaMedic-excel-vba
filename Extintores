@@ -1,1 +1,113 @@
 
+Private Sub CheckBox1_Click()
+
+End Sub
+
+Private Sub CheckBox4_Click()
+
+End Sub
+
+Private Sub CheckBox164_Click()
+
+End Sub
+
+Private Sub cmdSalvar_Click()
+    Dim ws As Worksheet
+    Dim i As Integer
+    Dim proximaLinha As Long
+
+    Set ws = ThisWorkbook.Sheets("Historico_Inspecao")
+
+    For i = 1 To 44
+        Dim chkSim As MSForms.CheckBox
+        Dim chkNao As MSForms.CheckBox
+        Dim lblLocal As MSForms.Label
+        Dim lblTipo As MSForms.Label
+        Dim lblPeso As MSForms.Label
+
+        Set chkSim = Me.Controls("chkSim" & i)
+        Set chkNao = Me.Controls("chkNao" & i)
+        Set lblLocal = Me.Controls("lblLocal" & i)
+        Set lblTipo = Me.Controls("lblTipo" & i)
+        Set lblPeso = Me.Controls("lblPeso" & i)
+
+        If chkSim.Value = True Or chkNao.Value = True Then
+            proximaLinha = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+
+            ' Data e Mês
+            ws.Cells(proximaLinha, 1).Value = Date
+            ws.Cells(proximaLinha, 2).Value = Format(Date, "mm/yyyy")
+
+            ' Informações do extintor
+            ws.Cells(proximaLinha, 3).Value = lblLocal.Caption
+            ws.Cells(proximaLinha, 4).Value = lblTipo.Caption
+            ws.Cells(proximaLinha, 5).Value = lblPeso.Caption
+
+            If chkSim.Value = True Then
+                ' Todos os campos "Sim" e pretos
+                Dim col As Integer
+                For col = 6 To 13
+                    ws.Cells(proximaLinha, col).Value = "Sim"
+                    ws.Cells(proximaLinha, col).Font.Color = RGB(0, 0, 0)
+                Next col
+                ws.Cells(proximaLinha, 14).Value = "OK"
+                ws.Cells(proximaLinha, 14).Font.Color = RGB(0, 0, 0)
+
+            ElseIf chkNao.Value = True Then
+                ' Todos os campos "-" e vermelhos
+                Dim colN As Integer
+                For colN = 6 To 13
+                    ws.Cells(proximaLinha, colN).Value = "-"
+                    ws.Cells(proximaLinha, colN).Font.Color = RGB(255, 0, 0)
+                Next colN
+                ws.Cells(proximaLinha, 14).Value = "Irregular"
+                ws.Cells(proximaLinha, 14).Font.Color = RGB(255, 0, 0)
+            End If
+        End If
+    Next i
+
+    MsgBox "Histórico salvo com sucesso!", vbInformation
+End Sub
+
+
+
+
+
+
+
+Private Sub Label1_Click()
+
+End Sub
+
+Private Sub Label2_Click()
+
+End Sub
+
+Private Sub Label45_Click()
+
+End Sub
+
+Private Sub TextBox1_Change()
+
+End Sub
+
+Private Sub TextBox2_Change()
+
+End Sub
+
+Private Sub lblPeso17_Click()
+
+End Sub
+
+Private Sub lblPeso3_Click()
+
+End Sub
+
+Private Sub lblPeso7_Click()
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
+
