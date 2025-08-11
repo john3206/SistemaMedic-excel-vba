@@ -1,0 +1,13 @@
+Sub AfastaColunasControleMedicamentos()
+    ' Garante que a planilha Controle-medicamentos2025 esteja ativa
+    Sheets("Controle-medicamentos2025").Activate
+
+    ' Ajusta a largura das colunas
+    Columns("A:A").ColumnWidth = 80 ' Coluna A
+    Columns("B:B").ColumnWidth = 150 ' Coluna B
+    Columns("C:C").ColumnWidth = 72 ' Coluna C
+    Columns("D:D").ColumnWidth = 88 ' Coluna D
+    Columns("E:E").ColumnWidth = 66 ' Coluna E
+    Columns("F:F").ColumnWidth = 80 ' Coluna F
+End Sub
+
