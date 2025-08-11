@@ -1,0 +1,27 @@
+Private Sub UserForm_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+    AtualizarListBoxProx
+End Sub
+
+Private Sub UserForm_Activate()
+    AtualizarListBoxProx
+End Sub
+
+Private Sub AjustarLarguraColunas()
+    Dim larguraTotal As Double
+    Dim larguraNome As Double, larguraValidade As Double, larguraEstoque As Double, larguraTipo As Double
+
+    larguraTotal = ListBoxProx.Width
+
+    ' Proporções ajustadas: Nome 50%, Validade 20%, Estoque 15%, Tipo 15%
+    larguraNome = larguraTotal * 0.5
+    larguraValidade = larguraTotal * 0.2
+    larguraEstoque = larguraTotal * 0.1
+    larguraTipo = larguraTotal * 0.1
+
+    ListBoxProx.ColumnCount = 4
+    ListBoxProx.ColumnWidths = larguraNome & " pt;" & larguraValidade & " pt;" & larguraEstoque & " pt;" & larguraTipo & " pt"
+End Sub
