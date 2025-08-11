@@ -1,0 +1,30 @@
+Option Explicit
+
+Private Declare PtrSafe Function FindWindow Lib "user32" Alias "FindWindowA" _
+    (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
+
+Private Declare PtrSafe Function GetForegroundWindow Lib "user32" () As Long
+
+Private Declare PtrSafe Function SendMessage Lib "user32" Alias "SendMessageA" _
+    (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+
+Private Const WM_MOUSEWHEEL As Long = &H20A
+Private Const SB_LINEUP As Long = 0
+Private Const SB_LINEDOWN As Long = 1
+
+' Função para capturar o Scroll do Mouse
+Public Sub MouseWheel_Scroll(ByVal nDirection As Integer, ByVal lst As MSForms.ListBox)
+    Dim hwndList As Long
+    hwndList = FindWindow("ThunderDListBox", vbNullString)
+    
+    ' Verifica se a ListBox está em foco
+    If hwndList = GetForegroundWindow() Then
+        If nDirection > 0 Then
+            SendMessage hwndList, WM_MOUSEWHEEL, SB_LINEUP * 120, 0
+        Else
+            SendMessage hwndList, WM_MOUSEWHEEL, SB_LINEDOWN * 120, 0
+        End If
+    End If
+End Sub
+
+
