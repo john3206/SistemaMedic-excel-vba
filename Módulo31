@@ -1,0 +1,49 @@
+Private Sub btnSalvar_Click()
+    Dim ws As Worksheet
+    Dim ultimaLinha As Long
+    
+    ' Definir a planilha de destino
+    Set ws = ThisWorkbook.Sheets("Produtos")
+    
+    ' Encontrar a última linha preenchida
+    ultimaLinha = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+    
+    ' Verifica se todos os campos estão preenchidos
+    If txtQtd.Value = "" Or txtCodigo.Value = "" Or txtIdentificacao.Value = "" _
+        Or txtLote.Value = "" Or txtPeso.Value = "" Or txtData.Value = "" Then
+        MsgBox "Preencha todos os campos antes de salvar!", vbExclamation, "Atenção"
+        Exit Sub
+    End If
+    
+    ' Inserir os valores na planilha
+    ws.Cells(ultimaLinha, 1).Value = txtQtd.Value
+    ws.Cells(ultimaLinha, 2).Value = txtCodigo.Value
+    ws.Cells(ultimaLinha, 3).Value = txtIdentificacao.Value
+    ws.Cells(ultimaLinha, 4).Value = txtLote.Value
+    ws.Cells(ultimaLinha, 5).Value = txtPeso.Value
+    ws.Cells(ultimaLinha, 6).Value = txtData.Value
+    
+    ' Mensagem de confirmação
+    MsgBox "Produto cadastrado com sucesso!", vbInformation, "Cadastro"
+    
+    ' Limpar os campos do formulário
+    Call btnLimpar_Click
+End Sub
+
+Private Sub btnLimpar_Click()
+    ' Limpa todos os campos do formulário
+    txtQtd.Value = ""
+    txtCodigo.Value = ""
+    txtIdentificacao.Value = ""
+    txtLote.Value = ""
+    txtPeso.Value = ""
+    txtData.Value = ""
+    
+    txtQtd.SetFocus ' Volta o cursor para o primeiro campo
+End Sub
+
+Private Sub btnFechar_Click()
+    Unload Me ' Fecha o formulário
+End Sub
+
+
