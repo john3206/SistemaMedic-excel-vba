@@ -1,0 +1,43 @@
+Private Sub Workbook_Open()
+    Application.Visible = False   ' Oculta o Excel
+    frmSplash.Show
+End Sub
+
+Private Sub Workbook_BeforeClose(Cancel As Boolean)
+   
+End Sub
+
+Private Sub Workbook_SheetDeactivate(ByVal Sh As Object)
+    If Sh.Name = "Maio2025" Then
+        Call AtualizarTotal
+    End If
+
+    On Error GoTo Fim
+    Application.EnableEvents = False
+
+    ' Só agir nas abas do tipo "Maio2025", "Junho2025", etc.
+    If Sh.Name Like "*####" Then
+        Dim tbl As ListObject
+        On Error Resume Next
+        Set tbl = Sh.ListObjects("Tabela8")
+        On Error GoTo Fim
+
+        If Not tbl Is Nothing Then
+            Dim soma As Double
+            Dim i As Long
+            soma = 0
+
+            For i = 1 To tbl.ListRows.Count
+                If IsNumeric(tbl.DataBodyRange(i, 5).Value) Then
+                    soma = soma + tbl.DataBodyRange(i, 5).Value
+                End If
+            Next i
+
+            Sh.Range("G1").Value = soma
+        End If
+    End If
+
+Fim:
+    Application.EnableEvents = True
+End Sub
+
