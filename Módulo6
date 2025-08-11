@@ -1,0 +1,40 @@
+Public Sub AtualizarListBoxProx()
+    Dim ws As Worksheet
+    Dim tbl As ListObject
+    Dim i As Long
+    Dim dataValidade As Date
+    Dim hoje As Date
+    Dim limite As Date
+    Dim nome As String, validade As String, estoque As String
+
+    hoje = Date
+    limite = DateAdd("m", 3, hoje) ' 3 meses à frente
+
+    Set ws = ThisWorkbook.Sheets("Qtd")
+    Set tbl = ws.ListObjects("Tabela2") ' Ajuste se o nome for outro
+
+    With ProxVenc.ListBoxProx
+        .Clear
+        .ColumnCount = 3
+        .ColumnWidths = "250 pt;80 pt;50 pt"
+
+        For i = 1 To tbl.ListRows.Count
+            On Error Resume Next
+            dataValidade = tbl.DataBodyRange(i, 11).Value ' Coluna K = 11 (Validade)
+            On Error GoTo 0
+
+            If IsDate(dataValidade) Then
+                If dataValidade > hoje And dataValidade <= limite Then
+                    nome = tbl.DataBodyRange(i, 1).Value ' Nome = Coluna A
+                    validade = Format(dataValidade, "dd/mm/yyyy")
+                    estoque = tbl.DataBodyRange(i, 10).Value ' Estoque = Coluna J
+                    .AddItem nome
+                    .List(.ListCount - 1, 1) = validade
+                    .List(.ListCount - 1, 2) = estoque
+                    .List(.ListCount - 1, 3) = tipo
+                End If
+            End If
+        Next i
+    End With
+End Sub
+
