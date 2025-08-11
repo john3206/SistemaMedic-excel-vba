@@ -1,0 +1,24 @@
+Public Sub RestaurarExcel()
+    On Error Resume Next
+    With Application
+        .DisplayFormulaBar = True
+        .DisplayStatusBar = True
+        .ExecuteExcel4Macro "SHOW.TOOLBAR(""Ribbon"", True)"
+    End With
+
+    With ActiveWindow
+        .DisplayGridlines = True
+        .DisplayHeadings = True
+        .DisplayWorkbookTabs = True
+    End With
+End Sub
+
+Sub EsconderExcel()
+    Application.Visible = False
+    Application.DisplayFullScreen = False
+    Application.ExecuteExcel4Macro "SHOW.TOOLBAR(""Ribbon"", False)"
+    ActiveWindow.DisplayHeadings = False
+    ActiveWindow.DisplayGridlines = False
+    ActiveWindow.DisplayWorkbookTabs = False
+End Sub
+
